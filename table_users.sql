@@ -1,0 +1,1 @@
+CREATE TABLE users (id INT PRIMARY KEY AUTO_INCREMENT, email TEXT, password TEXT, username TEXT)
