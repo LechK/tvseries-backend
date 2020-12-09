@@ -4,7 +4,7 @@ require("dotenv").config();
 module.exports = {
   //user registration and login validation
   userValidation: (req, res, next) => {
-    if (!req.body.email && req.body.email.includes("@")) {
+    if (!req.body.email || !req.body.email.includes("@")) {
       return res.status(400).json({ msg: "Email not follow the rules" });
     }
 
