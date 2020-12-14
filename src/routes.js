@@ -10,6 +10,7 @@ router.get("/", (req, res) => {
   res.send("The API service works!");
 });
 
+//getting users
 router.get("/users", (req, res) => {
   database((db) =>
     db.query(`SELECT * FROM users`, (err, result) => {
@@ -19,6 +20,69 @@ router.get("/users", (req, res) => {
   );
 });
 
+router.get("/tvseries", (req, res) => {
+  database((db) =>
+    db.query(`SELECT * FROM tv_series`, (err, result) => {
+      if (err) console.log(err);
+      res.json(result);
+    })
+  );
+});
+
+router.get("/tvseries/:id", (req, res) => {
+  database((db) =>
+    db.query(
+      `SELECT * FROM tv_series WHERE id = ${mysql.escape(req.params.id)} `,
+      (err, result) => {
+        if (err) console.log(err);
+        res.json(result);
+      }
+    )
+  );
+});
+
+router.post("/addtvseries", (req, res) => {
+  if (
+    req.body.title &&
+    req.body.creator &&
+    req.body.premiere &&
+    req.body.poster &&
+    req.body.wallpaper &&
+    req.body.description &&
+    req.body.network
+  ) {
+    database((db) =>
+      db.query(
+        `INSERT INTO tv_series (title, creator, premiere, poster, wallpaper, description, network) VALUES (
+        ${mysql.escape(req.body.title)},
+        ${mysql.escape(req.body.creator)},
+        ${mysql.escape(req.body.premiere)},
+        ${mysql.escape(req.body.poster)},
+        ${mysql.escape(req.body.wallpaper)},
+        ${mysql.escape(req.body.description)},
+        ${mysql.escape(req.body.network)}
+      )`,
+        (err, result) => {
+          if (err) {
+            console.log(err);
+            return res
+              .status(400)
+              .json({ msg: "Server error adding new TV Show" });
+          } else {
+            console.log(result);
+            return res
+              .status(201)
+              .json({ msg: `TV Show ${req.body.title} succesfully added!` });
+          }
+        }
+      )
+    );
+  } else {
+    return res.status(400).json({ msg: "Passed values are incorrect" });
+  }
+});
+
+//POST to add new users to db (register)
 router.post("/register", middleware.userValidation, (req, res) => {
   const email = req.body.email;
   database((db) =>
@@ -42,7 +106,7 @@ router.post("/register", middleware.userValidation, (req, res) => {
                 .status(400)
                 .json({ msg: "Internal server error hashing email details" });
             } else {
-              con.query(
+              db.query(
                 `INSERT INTO users (email, password, username) VALUES (
                 ${mysql.escape(email)},
                ${mysql.escape(hash)},
@@ -69,6 +133,7 @@ router.post("/register", middleware.userValidation, (req, res) => {
   );
 });
 
+//POST for login (jwt token expires in 7 days)
 router.post("/login", middleware.userValidation, (req, res) => {
   const email = req.body.email;
   database((db) =>
