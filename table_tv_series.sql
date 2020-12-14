@@ -1,0 +1,1 @@
+CREATE TABLE tv_series (id INT PRIMARY KEY AUTO_INCREMENT, title TEXT, creator TEXT, premiere INT, poster TEXT, wallpaper TEXT, description TEXT, network TEXT)
