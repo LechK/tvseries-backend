@@ -9,7 +9,6 @@ const database = require("./db");
 router.get("/", (req, res) => {
   res.send("The API service works!");
 });
-
 //getting users
 router.get("/users", (req, res) => {
   database((db) =>
@@ -20,6 +19,7 @@ router.get("/users", (req, res) => {
   );
 });
 
+//SERIES GETS AND POSTS
 router.get("/tvseries", (req, res) => {
   database((db) =>
     db.query(`SELECT * FROM tv_series`, (err, result) => {
@@ -81,6 +81,78 @@ router.post("/addtvseries", (req, res) => {
     return res.status(400).json({ msg: "Passed values are incorrect" });
   }
 });
+
+//SEASONS GETS AND POSTS
+router.post("/addseasons", (req, res) => {
+  if (req.body.season && req.body.seriesId) {
+    database((db) =>
+      db.query(
+        `INSERT INTO seasons (season_name, tv_series_id) VALUES (
+        ${mysql.escape(req.body.season)},
+        ${mysql.escape(req.body.seriesId)}    
+      )`,
+        (err, result) => {
+          if (err) {
+            console.log(err);
+            return res
+              .status(400)
+              .json({ msg: "Server error adding new Season to the Show" });
+          } else {
+            console.log(result);
+            return res
+              .status(201)
+              .json({ msg: `New Season succesfully added!` });
+          }
+        }
+      )
+    );
+  } else {
+    return res.status(400).json({ msg: "Passed values are incorrect" });
+  }
+});
+
+router.get("/seasons", (req, res) => {
+  database((db) =>
+    db.query(`SELECT * FROM seasons`, (err, result) => {
+      if (err) console.log(err);
+      res.json(result);
+    })
+  );
+});
+
+router.get("/seasons/:id", (req, res) => {
+  database((db) =>
+    db.query(
+      `SELECT * FROM seasons WHERE tv_series_id = ${mysql.escape(
+        req.params.id
+      )} `,
+      (err, result) => {
+        if (err) console.log(err);
+        res.json(result);
+      }
+    )
+  );
+});
+
+//EPISODES GETS AND POSTS
+
+// router.get("/tvSeriesSeasons", (req, res) => {
+//   database((db) =>
+//     db.query(
+//       `SELECT tv_series.id, tv_series.poster
+//       INNER JOIN tv_series ON seasons.tv_series_id = tv_series.id
+//       WHERE tv_series.id = '${req.body.seriesId}`,
+//       (err, result) => {
+//         if (err) {
+//           console.log(err);
+//           res.status(400).json({ msg: "Issues retrieving data" });
+//         } else {
+//           res.json(result);
+//         }
+//       }
+//     )
+//   );
+// });
 
 //POST to add new users to db (register)
 router.post("/register", middleware.userValidation, (req, res) => {
