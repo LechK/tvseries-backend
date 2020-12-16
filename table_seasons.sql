@@ -1,0 +1,1 @@
+CREATE TABLE seasons (id INT PRIMARY KEY AUTO_INCREMENT, season_name TEXT, tv_series_id INT)
