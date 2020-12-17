@@ -134,7 +134,60 @@ router.get("/seasons/:id", (req, res) => {
   );
 });
 
+//seasons GET for episodes to add
+router.get("/seasons/:id", (req, res) => {
+  database((db) =>
+    db.query(
+      `SELECT * FROM seasons WHERE tv_series_id = ${mysql.escape(
+        req.body.seriesId
+      )} `,
+      (err, result) => {
+        if (err) console.log(err);
+        res.json(result);
+      }
+    )
+  );
+});
+
 //EPISODES GETS AND POSTS
+
+router.post("/addEpisodes", (req, res) => {
+  if (req.body.seasonId && req.body.orderNum && req.body.episodeTitle) {
+    database((db) =>
+      db.query(
+        `INSERT INTO episodes (season_id, order_num, episode_title) VALUES (
+        ${mysql.escape(req.body.seasonId)},
+        ${mysql.escape(req.body.orderNum)},    
+        ${mysql.escape(req.body.episodeTitle)}    
+      )`,
+        (err, result) => {
+          if (err) {
+            console.log(err);
+            return res
+              .status(400)
+              .json({ msg: "Server error adding new Episode to the Season" });
+          } else {
+            console.log(result);
+            return res
+              .status(201)
+              .json({ msg: `New Episode succesfully added!` });
+          }
+        }
+      )
+    );
+  } else {
+    return res.status(400).json({ msg: "Passed values are incorrect" });
+  }
+});
+
+router.get("/episodes", (req, res) => {
+  database((db) =>
+    db.query(`SELECT * FROM episodes`, (err, result) => {
+      if (err) console.log(err);
+      res.json(result);
+    })
+  );
+});
 
 // router.get("/tvSeriesSeasons", (req, res) => {
 //   database((db) =>
