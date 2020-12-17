@@ -134,21 +134,6 @@ router.get("/seasons/:id", (req, res) => {
   );
 });
 
-//seasons GET for episodes to add
-router.get("/seasons/:id", (req, res) => {
-  database((db) =>
-    db.query(
-      `SELECT * FROM seasons WHERE tv_series_id = ${mysql.escape(
-        req.body.seriesId
-      )} `,
-      (err, result) => {
-        if (err) console.log(err);
-        res.json(result);
-      }
-    )
-  );
-});
-
 //EPISODES GETS AND POSTS
 
 router.post("/addEpisodes", (req, res) => {
@@ -187,6 +172,63 @@ router.get("/episodes", (req, res) => {
       res.json(result);
     })
   );
+});
+
+router.get("/seasons/:seasonid/episodes/", (req, res) => {
+  database((db) =>
+    db.query(
+      `SELECT * FROM episodes WHERE season_id = ${mysql.escape(
+        req.params.seasonid
+      )}`,
+      (err, result) => {
+        if (err) {
+          console.log(err);
+        } else {
+          return res.json(result);
+        }
+      }
+    )
+  );
+});
+
+//POST CHARACTERS
+router.post("/addCharacters", (req, res) => {
+  if (
+    req.body.fullname &&
+    req.body.tvSeriesId &&
+    req.body.appearedAt &&
+    req.body.vanishedAt &&
+    req.body.causeOf &&
+    req.body.photo
+  ) {
+    database((db) =>
+      db.query(
+        `INSERT INTO episodes (fullname, tv_series_id, appeared_at, vanished_at, cause_of, photo) VALUES (
+        ${mysql.escape(req.body.fullname)},
+        ${mysql.escape(req.body.tvSeriesId)},    
+        ${mysql.escape(req.body.appearedAt)},    
+        ${mysql.escape(req.body.vanishedAt)},  
+        ${mysql.escape(req.body.causeOf)},  
+        ${mysql.escape(req.body.photo)} 
+      )`,
+        (err, result) => {
+          if (err) {
+            console.log(err);
+            return res
+              .status(400)
+              .json({ msg: "Server error adding new character to the Show" });
+          } else {
+            console.log(result);
+            return res
+              .status(201)
+              .json({ msg: `New Character succesfully added!` });
+          }
+        }
+      )
+    );
+  } else {
+    return res.status(400).json({ msg: "Passed values are incorrect" });
+  }
 });
 
 // router.get("/tvSeriesSeasons", (req, res) => {
