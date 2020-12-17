@@ -1,0 +1,1 @@
+CREATE TABLE characters (id INT PRIMARY KEY AUTO_INCREMENT, fullname TEXT, tv_series_id INT, appeared_at INT, vanished_at INT, cause_of TEXT, photo TEXT)
