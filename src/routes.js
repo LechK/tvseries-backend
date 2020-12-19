@@ -56,10 +56,10 @@ router.get("/shows/id/seasons/:seasonId/episodes/", (req, res) => {
 router.get("/shows/:id/seasons/:seasonId/episodes/:episodeNum", (req, res) => {
   database((db) =>
     db.query(
-      `select ch.id, ch.fullname, ch.appeared_at, ch.vanished_at, ch.photo from characters as ch
-      join episodes on episodes.tv_series_id = ch.tv_series_id
-      where episodes.order_num = ${req.params.episodeNum} and ch.tv_series_id = ${req.params.id}
-       and ch.appeared_at <= episodes.order_num;
+      `SELECT ch.id, ch.fullname, ch.appeared_at, ch.vanished_at, ch.photo FROM characters AS ch
+      JOIN episodes ON episodes.tv_series_id = ch.tv_series_id 
+      WHERE episodes.order_num = ${req.params.episodeNum} AND ch.tv_series_id = ${req.params.id} 
+       AND ch.appeared_at <= episodes.order_num;
     `,
       (err, result) => {
         if (err) {
