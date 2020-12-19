@@ -146,13 +146,19 @@ router.post("/addseasons", (req, res) => {
 
 //EPISODES POSTS
 router.post("/addEpisodes", (req, res) => {
-  if (req.body.seasonId && req.body.orderNum && req.body.episodeTitle) {
+  if (
+    req.body.seasonId &&
+    req.body.orderNum &&
+    req.body.episodeTitle &&
+    req.body.seriesId
+  ) {
     database((db) =>
       db.query(
-        `INSERT INTO episodes (season_id, order_num, episode_title) VALUES (
+        `INSERT INTO episodes (season_id, order_num, episode_title, tv_series_id) VALUES (
         ${mysql.escape(req.body.seasonId)},
         ${mysql.escape(req.body.orderNum)},    
-        ${mysql.escape(req.body.episodeTitle)}    
+        ${mysql.escape(req.body.episodeTitle)},   
+        ${mysql.escape(req.body.seriesId)}   
       )`,
         (err, result) => {
           if (err) {
