@@ -6,33 +6,11 @@ const jwt = require("jsonwebtoken");
 const middleware = require("./middleware");
 const database = require("./db");
 
-router.get("/", (req, res) => {
-  res.send("The API service works!");
-});
-//getting users
-router.get("/users", (req, res) => {
-  database((db) =>
-    db.query(`SELECT * FROM users`, (err, result) => {
-      if (err) console.log(err);
-      res.json(result);
-    })
-  );
-});
-
-//SERIES GETS AND POSTS
-router.get("/tvseries", (req, res) => {
-  database((db) =>
-    db.query(`SELECT * FROM tv_series`, (err, result) => {
-      if (err) console.log(err);
-      res.json(result);
-    })
-  );
-});
-
-router.get("/tvseries/:id", (req, res) => {
+//GET SHOW ID ON SELECTEDSHOW PAGE
+router.get("/shows/:id", (req, res) => {
   database((db) =>
     db.query(
-      `SELECT * FROM tv_series WHERE id = ${mysql.escape(req.params.id)} `,
+      `SELECT * FROM tv_series WHERE id = ${mysql.escape(req.params.id)}`,
       (err, result) => {
         if (err) console.log(err);
         res.json(result);
@@ -41,6 +19,61 @@ router.get("/tvseries/:id", (req, res) => {
   );
 });
 
+//GET ALL SEASONS BY SHOW ID
+router.get("/shows/:id/seasons", (req, res) => {
+  database((db) =>
+    db.query(
+      `SELECT * FROM seasons WHERE tv_series_id = ${mysql.escape(
+        req.params.id
+      )}`,
+      (err, result) => {
+        if (err) console.log(err);
+        res.json(result);
+      }
+    )
+  );
+});
+
+// GET ALL EPISODES BY SEASON ID
+router.get("/shows/id/seasons/:seasonId/episodes/", (req, res) => {
+  database((db) =>
+    db.query(
+      `SELECT * FROM episodes WHERE season_id = ${mysql.escape(
+        req.params.seasonId
+      )}`,
+      (err, result) => {
+        if (err) {
+          console.log(err);
+        } else {
+          return res.json(result);
+        }
+      }
+    )
+  );
+});
+
+//GET CHARACTERS BY APPEARENCE AT SELECTED EPISODE
+router.get("/shows/:id/seasons/:seasonId/episodes/:episodeNum", (req, res) => {
+  database((db) =>
+    db.query(
+      `select ch.id, ch.fullname, ch.appeared_at, ch.vanished_at, ch.photo from characters as ch
+      join episodes on episodes.tv_series_id = ch.tv_series_id
+      where episodes.order_num = ${req.params.episodeNum} and ch.tv_series_id = ${req.params.id}
+       and ch.appeared_at <= episodes.order_num;
+    `,
+      (err, result) => {
+        if (err) {
+          console.log(err);
+        } else {
+          return res.json(result);
+        }
+      }
+    )
+  );
+});
+
+//************************************************************* ALL POSTS *******************************************************************
+//tvseries post
 router.post("/addtvseries", (req, res) => {
   if (
     req.body.title &&
@@ -82,7 +115,7 @@ router.post("/addtvseries", (req, res) => {
   }
 });
 
-//SEASONS GETS AND POSTS
+//SEASONS POSTS
 router.post("/addseasons", (req, res) => {
   if (req.body.season && req.body.seriesId) {
     database((db) =>
@@ -111,31 +144,7 @@ router.post("/addseasons", (req, res) => {
   }
 });
 
-router.get("/seasons", (req, res) => {
-  database((db) =>
-    db.query(`SELECT * FROM seasons`, (err, result) => {
-      if (err) console.log(err);
-      res.json(result);
-    })
-  );
-});
-
-router.get("/seasons/:id", (req, res) => {
-  database((db) =>
-    db.query(
-      `SELECT * FROM seasons WHERE tv_series_id = ${mysql.escape(
-        req.params.id
-      )} `,
-      (err, result) => {
-        if (err) console.log(err);
-        res.json(result);
-      }
-    )
-  );
-});
-
-//EPISODES GETS AND POSTS
-
+//EPISODES POSTS
 router.post("/addEpisodes", (req, res) => {
   if (req.body.seasonId && req.body.orderNum && req.body.episodeTitle) {
     database((db) =>
@@ -164,90 +173,6 @@ router.post("/addEpisodes", (req, res) => {
     return res.status(400).json({ msg: "Passed values are incorrect" });
   }
 });
-
-router.get("/episodes", (req, res) => {
-  database((db) =>
-    db.query(`SELECT * FROM episodes`, (err, result) => {
-      if (err) console.log(err);
-      res.json(result);
-    })
-  );
-});
-
-router.get("/seasons/:seasonid/episodes/", (req, res) => {
-  database((db) =>
-    db.query(
-      `SELECT * FROM episodes WHERE season_id = ${mysql.escape(
-        req.params.seasonid
-      )}`,
-      (err, result) => {
-        if (err) {
-          console.log(err);
-        } else {
-          return res.json(result);
-        }
-      }
-    )
-  );
-});
-
-//POST CHARACTERS
-router.post("/addCharacters", (req, res) => {
-  if (
-    req.body.fullname &&
-    req.body.tvSeriesId &&
-    req.body.appearedAt &&
-    req.body.vanishedAt &&
-    req.body.causeOf &&
-    req.body.photo
-  ) {
-    database((db) =>
-      db.query(
-        `INSERT INTO episodes (fullname, tv_series_id, appeared_at, vanished_at, cause_of, photo) VALUES (
-        ${mysql.escape(req.body.fullname)},
-        ${mysql.escape(req.body.tvSeriesId)},    
-        ${mysql.escape(req.body.appearedAt)},    
-        ${mysql.escape(req.body.vanishedAt)},  
-        ${mysql.escape(req.body.causeOf)},  
-        ${mysql.escape(req.body.photo)} 
-      )`,
-        (err, result) => {
-          if (err) {
-            console.log(err);
-            return res
-              .status(400)
-              .json({ msg: "Server error adding new character to the Show" });
-          } else {
-            console.log(result);
-            return res
-              .status(201)
-              .json({ msg: `New Character succesfully added!` });
-          }
-        }
-      )
-    );
-  } else {
-    return res.status(400).json({ msg: "Passed values are incorrect" });
-  }
-});
-
-// router.get("/tvSeriesSeasons", (req, res) => {
-//   database((db) =>
-//     db.query(
-//       `SELECT tv_series.id, tv_series.poster
-//       INNER JOIN tv_series ON seasons.tv_series_id = tv_series.id
-//       WHERE tv_series.id = '${req.body.seriesId}`,
-//       (err, result) => {
-//         if (err) {
-//           console.log(err);
-//           res.status(400).json({ msg: "Issues retrieving data" });
-//         } else {
-//           res.json(result);
-//         }
-//       }
-//     )
-//   );
-// });
 
 //POST to add new users to db (register)
 router.post("/register", middleware.userValidation, (req, res) => {
@@ -356,4 +281,94 @@ router.post("/login", middleware.userValidation, (req, res) => {
   );
 });
 
+//POST CHARACTERS
+router.post("/addCharacters", (req, res) => {
+  if (
+    req.body.fullname &&
+    req.body.seriesId &&
+    req.body.appearedAt &&
+    req.body.vanishedAt &&
+    req.body.causeOf &&
+    req.body.photoURL
+  ) {
+    database((db) =>
+      db.query(
+        `INSERT INTO characters (fullname, tv_series_id, appeared_at, vanished_at, cause_of, photo) VALUES (
+        ${mysql.escape(req.body.fullname)},
+        ${mysql.escape(req.body.seriesId)},    
+        ${mysql.escape(req.body.appearedAt)},    
+        ${mysql.escape(req.body.vanishedAt)},  
+        ${mysql.escape(req.body.causeOf)},  
+        ${mysql.escape(req.body.photoURL)} 
+      )`,
+        (err, result) => {
+          if (err) {
+            console.log(err);
+            return res
+              .status(400)
+              .json({ msg: "Server error adding new character to the Show" });
+          } else {
+            console.log(result);
+            return res
+              .status(201)
+              .json({ msg: `New Character succesfully added!` });
+          }
+        }
+      )
+    );
+  } else {
+    return res.status(400).json({ msg: "Passed values are incorrect" });
+  }
+});
+
+// ************************** ALL SIMPLE GETS ***************************************************************************************
+//BOILERPLATE GET
+router.get("/", (req, res) => {
+  res.send("The API service works!");
+});
+//ALL USERS GET
+router.get("/users", (req, res) => {
+  database((db) =>
+    db.query(`SELECT * FROM users`, (err, result) => {
+      if (err) console.log(err);
+      res.json(result);
+    })
+  );
+});
+//ALL SERIES GET
+router.get("/shows", (req, res) => {
+  database((db) =>
+    db.query(`SELECT * FROM tv_series`, (err, result) => {
+      if (err) console.log(err);
+      res.json(result);
+    })
+  );
+});
+//ALL SEASONS GET
+router.get("/seasons", (req, res) => {
+  database((db) =>
+    db.query(`SELECT * FROM seasons`, (err, result) => {
+      if (err) console.log(err);
+      res.json(result);
+    })
+  );
+});
+//ALL EPISODES GET
+router.get("/episodes", (req, res) => {
+  database((db) =>
+    db.query(`SELECT * FROM episodes`, (err, result) => {
+      if (err) console.log(err);
+      res.json(result);
+    })
+  );
+});
+//ALL CHARACTERS GET
+router.get("/characters", (req, res) => {
+  database((db) =>
+    db.query(`SELECT * FROM characters`, (err, result) => {
+      if (err) console.log(err);
+      res.json(result);
+    })
+  );
+});
 module.exports = router;
