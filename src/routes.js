@@ -56,10 +56,28 @@ router.get("/shows/id/seasons/:seasonId/episodes/", (req, res) => {
 router.get("/shows/:id/seasons/:seasonId/episodes/:episodeNum", (req, res) => {
   database((db) =>
     db.query(
-      `SELECT ch.id, ch.fullname, ch.appeared_at, ch.vanished_at, ch.photo FROM characters AS ch
+      `SELECT ch.id, ch.fullname, ch.appeared_at, ch.vanished_at, ch.cause_of, ch.photo FROM characters AS ch
       JOIN episodes ON episodes.tv_series_id = ch.tv_series_id 
       WHERE episodes.order_num = ${req.params.episodeNum} AND ch.tv_series_id = ${req.params.id} 
        AND ch.appeared_at <= episodes.order_num;
+    `,
+      (err, result) => {
+        if (err) {
+          console.log(err);
+        } else {
+          return res.json(result);
+        }
+      }
+    )
+  );
+});
+
+//GET EPISODE MAX NUMBER
+router.get("/max/:id", (req, res) => {
+  database((db) =>
+    db.query(
+      `SELECT max(order_num) AS max FROM episodes
+      WHERE tv_series_id = ${req.params.id}
     `,
       (err, result) => {
         if (err) {
@@ -332,6 +350,7 @@ router.post("/addCharacters", (req, res) => {
 router.get("/", (req, res) => {
   res.send("The API service works!");
 });
+
 //ALL USERS GET
 router.get("/users", (req, res) => {
   database((db) =>
@@ -341,6 +360,7 @@ router.get("/users", (req, res) => {
     })
   );
 });
+
 //ALL SERIES GET
 router.get("/shows", (req, res) => {
   database((db) =>
@@ -350,6 +370,7 @@ router.get("/shows", (req, res) => {
     })
   );
 });
+
 //ALL SEASONS GET
 router.get("/seasons", (req, res) => {
   database((db) =>
@@ -359,6 +380,7 @@ router.get("/seasons", (req, res) => {
     })
   );
 });
+
 //ALL EPISODES GET
 router.get("/episodes", (req, res) => {
   database((db) =>
@@ -368,6 +390,7 @@ router.get("/episodes", (req, res) => {
     })
   );
 });
+
 //ALL CHARACTERS GET
 router.get("/characters", (req, res) => {
   database((db) =>
@@ -377,4 +400,5 @@ router.get("/characters", (req, res) => {
     })
   );
 });
+
 module.exports = router;
