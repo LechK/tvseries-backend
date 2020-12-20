@@ -133,11 +133,6 @@ router.post("/addtvseries", middleware.isLoggedIn, (req, res) => {
   }
 });
 
-// userData: {
-//   userId: result[0].id,
-//   email: result[0].email,
-// },
-
 //SEASONS POSTS
 router.post("/addseasons", middleware.isLoggedIn, (req, res) => {
   if (req.body.season && req.body.seriesId) {
