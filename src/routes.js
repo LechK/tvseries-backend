@@ -92,7 +92,7 @@ router.get("/max/:id", (req, res) => {
 
 //************************************************************* ALL POSTS *******************************************************************
 //tvseries post
-router.post("/addtvseries", (req, res) => {
+router.post("/addtvseries", middleware.isLoggedIn, (req, res) => {
   if (
     req.body.title &&
     req.body.creator &&
@@ -133,8 +133,13 @@ router.post("/addtvseries", (req, res) => {
   }
 });
 
+// userData: {
+//   userId: result[0].id,
+//   email: result[0].email,
+// },
+
 //SEASONS POSTS
-router.post("/addseasons", (req, res) => {
+router.post("/addseasons", middleware.isLoggedIn, (req, res) => {
   if (req.body.season && req.body.seriesId) {
     database((db) =>
       db.query(
@@ -163,7 +168,7 @@ router.post("/addseasons", (req, res) => {
 });
 
 //EPISODES POSTS
-router.post("/addEpisodes", (req, res) => {
+router.post("/addEpisodes", middleware.isLoggedIn, (req, res) => {
   if (
     req.body.seasonId &&
     req.body.orderNum &&
